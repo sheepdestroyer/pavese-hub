@@ -24,6 +24,8 @@ def get_current_user(request: Request) -> UserInfo:
         request.headers.get("X-Auth-Request-Email")
         or request.headers.get("X-Auth-Request-User")
         or request.headers.get("X-Forwarded-User")
+        or request.headers.get("Remote-Email")
+        or request.headers.get("Remote-User")
         or request.headers.get("X-Dev-User")
     )
 
