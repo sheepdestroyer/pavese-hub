@@ -1,0 +1,1 @@
+/mnt/DATA/boy/AGENTS.md

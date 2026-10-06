@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pavese Cloud Hub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐑</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --card-hover: #1c2128;
+      --border: #30363d;
+      --border-hover: #58a6ff;
+      --text: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --purple: #bc8cff;
+      --orange: #f0883e;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
+      line-height: 1.5;
+    }
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background: rgba(88, 166, 255, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .user-pill a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      margin-left: 0.4rem;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+    }
+    .user-pill a:hover {
+      color: var(--text-bright);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .admin-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      background: rgba(188, 140, 255, 0.12);
+      color: var(--purple);
+      border: 1px solid rgba(188, 140, 255, 0.3);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .admin-pill:hover {
+      background: rgba(188, 140, 255, 0.25);
+      border-color: var(--purple);
+      color: #fff;
+    }
+    h1 {
+      color: var(--text-bright);
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      color: var(--text-bright);
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 2rem 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1rem;
+    }
+    a.card {
+      text-decoration: none;
+      color: inherit;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      min-height: 160px;
+    }
+    .card:hover {
+      background: var(--card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .icon-title {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .icon {
+      font-size: 1.4rem;
+    }
+    .card-title {
+      color: var(--text-bright);
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tag-purple {
+      background: rgba(188, 140, 255, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(188, 140, 255, 0.3);
+    }
+    .tag-green {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+    }
+    .tag-blue {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+    }
+    .tag-orange {
+      background: rgba(240, 136, 62, 0.15);
+      color: var(--orange);
+      border: 1px solid rgba(240, 136, 62, 0.3);
+    }
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+      flex-grow: 1;
+    }
+    .card-footer {
+      font-size: 0.8rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: 500;
+    }
+    footer {
+      margin-top: 3.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-bar">
+        <div class="user-pill">
+          <span>👤</span>
+          <span>{{ user.email }}</span>
+          <a href="/oauth2/sign_out">Sign out</a>
+        </div>
+        {% if user.is_admin %}
+        <a href="/admin" class="admin-pill">
+          <span>⚙️</span>
+          <span>Admin Panel</span>
+        </a>
+        {% endif %}
+      </div>
+      <h1>Pavese Cloud Hub</h1>
+      <p class="subtitle">Secure entry point and unified service gateway</p>
+    </header>
+
+    {% for category, tiles in categories.items() %}
+    <div class="section-title">🌐 {{ category }}</div>
+    <div class="grid">
+      {% for tile in tiles %}
+      <a href="{{ tile.url }}" class="card">
+        <div class="card-header">
+          <div class="icon-title">
+            <span class="icon">{{ tile.icon }}</span>
+            <span class="card-title">{{ tile.title }}</span>
+          </div>
+          {% if tile.badge %}
+          <span class="tag tag-{{ tile.badge_color }}">{{ tile.badge }}</span>
+          {% endif %}
+        </div>
+        <div class="card-desc">{{ tile.description }}</div>
+        <div class="card-footer">{{ tile.footer_text }}</div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <footer>
+      <p>&copy; 2026 Pavese Cloud Infrastructure &bull; Protected by Google OAuth2-Proxy & HAProxy</p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+[project]
+name = "pavese-hub"
+version = "0.1.0"
+description = "Unified Service Directory Hub with Admin RBAC Tile Visibility"
+authors = [
+    { name = "Guillaume Pavese", email = "sheepdestroyer@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.8.0",
+    "jinja2>=3.1.4",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-v --tb=short --cov=app --cov-report=term-missing --cov-fail-under=100"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C",   # flake8-comprehensions
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = ["B008"]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
