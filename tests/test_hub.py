@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from app import database
 from app.auth import get_client_ip, get_current_user, is_lan_or_local
 from app.config import settings
-from app.models import TileUpdate, UserInfo
+from app.models import Tile, TileUpdate, UserInfo
 from app.routes.portal import is_tile_permitted
 
 
@@ -260,6 +260,14 @@ def test_auth_edge_cases_and_helpers() -> None:
     user_admin_lan = get_current_user(req_lan_host)
     assert user_admin_lan.is_admin is True
 
+    # 6. normalize_email tests
+    from app.auth import normalize_email
+
+    assert normalize_email("notanemail") == "notanemail"
+    assert normalize_email("Ulysse.Pavese@gmail.com") == "ulyssepavese@gmail.com"
+    assert normalize_email("test.user+tag123@googlemail.com") == "testuser@googlemail.com"
+    assert normalize_email("user.name@custom.domain.com") == "user.name@custom.domain.com"
+
 
 def test_database_edge_cases(tmp_path: pytest.TempPathFactory) -> None:
     # Memory connection test
@@ -363,3 +371,17 @@ def test_is_tile_permitted(tmp_path: pytest.TempPathFactory) -> None:
     assert tile_restricted is not None
     assert is_tile_permitted(tile_restricted, UserInfo(email="allowed@example.com", is_admin=False)) is True
     assert is_tile_permitted(tile_restricted, UserInfo(email="denied@example.com", is_admin=False)) is False
+
+    # Test Gmail dot normalization in is_tile_permitted
+    tile_gmail = Tile(
+        id="gmail_test",
+        title="Gmail Test",
+        url="http://test",
+        icon="📧",
+        description="",
+        category="Cat",
+        allowed_users=["ulysse.pavese@gmail.com"],
+        enabled=True,
+    )
+    assert is_tile_permitted(tile_gmail, UserInfo(email="ulyssepavese@gmail.com", is_admin=False)) is True
+    assert is_tile_permitted(tile_gmail, UserInfo(email="Ulysse.Pavese@gmail.com", is_admin=False)) is True

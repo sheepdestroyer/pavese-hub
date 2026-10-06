@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app import database
-from app.auth import get_current_user
+from app.auth import get_current_user, normalize_email
 from app.models import Tile, UserInfo
 
 router = APIRouter(tags=["portal"])
@@ -16,7 +16,8 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templa
 def is_tile_permitted(tile: Tile, user: UserInfo) -> bool:
     if "*" in tile.allowed_users:
         return True
-    return user.email.lower() in [u.lower() for u in tile.allowed_users]
+    user_email_norm = normalize_email(user.email)
+    return any(user_email_norm == normalize_email(u) for u in tile.allowed_users)
 
 
 @router.get("/", response_class=HTMLResponse)

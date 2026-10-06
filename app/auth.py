@@ -19,6 +19,18 @@ def is_lan_or_local(request: Request) -> bool:
     return ip.startswith("127.") or ip.startswith("192.168.0.") or ip == "::1"
 
 
+def normalize_email(email: str) -> str:
+    cleaned = email.strip().lower()
+    if "@" in cleaned:
+        user_part, domain_part = cleaned.split("@", 1)
+        if domain_part in ("gmail.com", "googlemail.com"):
+            user_part = user_part.replace(".", "")
+            if "+" in user_part:
+                user_part = user_part.split("+", 1)[0]
+        return f"{user_part}@{domain_part}"
+    return cleaned
+
+
 def get_current_user(request: Request) -> UserInfo:
     email = (
         request.headers.get("X-Auth-Request-Email")
@@ -35,7 +47,7 @@ def get_current_user(request: Request) -> UserInfo:
 
     email_clean = (email or "anonymous").strip().lower()
     is_admin = any(
-        email_clean == admin_email.lower()
+        normalize_email(email_clean) == normalize_email(admin_email)
         or (admin_email.lower() == "admin@vendeuvre.lan" and email_clean == "admin@vendeuvre.lan")
         for admin_email in settings.admin_emails
     )
