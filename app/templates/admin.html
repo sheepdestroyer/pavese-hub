@@ -525,7 +525,12 @@
         }
 
         if (!res.ok) {
-          alert("Error saving tile: " + res.statusText);
+          let errMsg = res.statusText || `HTTP ${res.status}`;
+          try {
+            const errData = await res.json();
+            if (errData.detail) errMsg += ` (${errData.detail})`;
+          } catch (_) {}
+          alert("Error saving tile: " + errMsg);
           return;
         }
 
@@ -543,7 +548,8 @@
       try {
         const res = await fetch(`/api/admin/tiles/${id}`, { method: "DELETE" });
         if (!res.ok) {
-          alert("Error deleting tile");
+          let errMsg = res.statusText || `HTTP ${res.status}`;
+          alert("Error deleting tile: " + errMsg);
           return;
         }
         loadTiles();

@@ -14,6 +14,7 @@ class Settings:
             "true",
             "yes",
         )
+        self.allowed_emails_path: str = os.environ.get("ALLOWED_EMAILS_PATH", "")
 
 
 settings = Settings()
