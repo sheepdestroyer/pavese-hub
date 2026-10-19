@@ -14,6 +14,7 @@ def test_db(tmp_path: pytest.TempPathFactory) -> Generator[str, None, None]:
     settings.database_path = db_file
     settings.admin_emails = ["sheepdestroyer@gmail.com", "sheepyboy.x570@gmail.com"]
     settings.allow_lan_admin = True
+    settings.allowed_emails_path = str(tmp_path / "allowed_emails.txt")
     database.init_db(db_file)
     yield db_file
 

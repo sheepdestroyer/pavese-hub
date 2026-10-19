@@ -385,3 +385,135 @@ def test_is_tile_permitted(tmp_path: pytest.TempPathFactory) -> None:
     )
     assert is_tile_permitted(tile_gmail, UserInfo(email="ulyssepavese@gmail.com", is_admin=False)) is True
     assert is_tile_permitted(tile_gmail, UserInfo(email="Ulysse.Pavese@gmail.com", is_admin=False)) is True
+
+
+def test_sync_allowed_emails_and_authz(client: TestClient, tmp_path: pytest.TempPathFactory) -> None:
+    from pathlib import Path
+
+    # Verify allowed_emails.txt was created on init_db with admin + tile emails
+    emails_file = Path(settings.allowed_emails_path)
+    assert emails_file.exists()
+    content = emails_file.read_text(encoding="utf-8")
+    assert "sheepdestroyer@gmail.com" in content
+    assert "sheepyboy.x570@gmail.com" in content
+    assert "sheepyboyx570@gmail.com" in content
+
+    # Add pg.touja@gmail.com to divorce tile via PUT /api/admin/tiles/divorce
+    admin_hdr = {"X-Auth-Request-Email": "sheepdestroyer@gmail.com"}
+    res_put = client.put(
+        "/api/admin/tiles/divorce",
+        json={"allowed_users": ["sheepdestroyer@gmail.com", "sheepyboy.x570@gmail.com", "pg.touja@gmail.com"]},
+        headers=admin_hdr,
+    )
+    assert res_put.status_code == 200
+
+    # Verify allowed_emails.txt automatically synced both dotted and dotless Gmail forms
+    updated_content = emails_file.read_text(encoding="utf-8")
+    assert "pg.touja@gmail.com" in updated_content
+    assert "pgtouja@gmail.com" in updated_content
+
+    # Test /api/authz endpoint for pg.touja@gmail.com on divorce.pavese.fr -> 200 OK
+    res_authz_ok = client.head(
+        "/api/authz",
+        headers={
+            "X-Auth-Request-Email": "pg.touja@gmail.com",
+            "X-Original-Host": "divorce.pavese.fr",
+            "Host": "hub.pavese.fr",
+            "X-Forwarded-For": "203.0.113.10",
+        },
+    )
+    assert res_authz_ok.status_code == 200
+    assert res_authz_ok.headers["X-Authz-User"] == "pg.touja@gmail.com"
+
+    # Dotless Gmail variant also succeeds on divorce.pavese.fr
+    res_authz_dotless = client.get(
+        "/api/authz?host=divorce.pavese.fr",
+        headers={
+            "X-Auth-Request-Email": "pgtouja@gmail.com",
+            "Host": "hub.pavese.fr",
+            "X-Forwarded-For": "203.0.113.10",
+        },
+    )
+    assert res_authz_dotless.status_code == 200
+
+    # pg.touja@gmail.com on romm.pavese.fr -> 403 Forbidden
+    res_authz_romm = client.head(
+        "/api/authz",
+        headers={
+            "X-Auth-Request-Email": "pg.touja@gmail.com",
+            "X-Original-Host": "romm.pavese.fr",
+            "Host": "hub.pavese.fr",
+            "X-Forwarded-For": "203.0.113.10",
+        },
+    )
+    assert res_authz_romm.status_code == 403
+
+    # pg.touja@gmail.com on hub.pavese.fr -> 200 OK (has access to at least one enabled tile)
+    res_authz_hub = client.get(
+        "/api/authz",
+        headers={
+            "X-Auth-Request-Email": "pg.touja@gmail.com",
+            "X-Forwarded-Host": "hub.pavese.fr",
+            "Host": "hub.pavese.fr",
+            "X-Forwarded-For": "203.0.113.10",
+        },
+    )
+    assert res_authz_hub.status_code == 200
+
+    # Alias hostnames (bluemap.minecraft.pavese.fr -> minecraft.pavese.fr)
+    res_alias = client.get(
+        "/api/authz",
+        headers={
+            "X-Auth-Request-Email": "pg.touja@gmail.com",
+            "X-Original-Host": "bluemap.minecraft.pavese.fr",
+            "Host": "hub.pavese.fr",
+            "X-Forwarded-For": "203.0.113.10",
+        },
+    )
+    assert res_alias.status_code == 200
+
+    # Admin user always authorized even on unknown host
+    res_admin_authz = client.get(
+        "/api/authz",
+        headers={
+            "X-Auth-Request-Email": "sheepdestroyer@gmail.com",
+            "X-Original-Host": "any.pavese.fr",
+        },
+    )
+    assert res_admin_authz.status_code == 200
+
+    # Anonymous user denied
+    settings.allow_lan_admin = False
+    res_anon = client.get(
+        "/api/authz",
+        headers={
+            "Host": "hub.pavese.fr",
+            "X-Forwarded-For": "203.0.113.10",
+        },
+    )
+    assert res_anon.status_code == 403
+
+    # Non-admin with empty host denied
+    assert (
+        database.authorize_host_access(
+            "",
+            UserInfo(email="pg.touja@gmail.com", is_admin=False),
+        )
+        is False
+    )
+
+    # Non-admin with unknown host denied
+    assert (
+        database.authorize_host_access(
+            "unknown.pavese.fr:443/path",
+            UserInfo(email="pg.touja@gmail.com", is_admin=False),
+        )
+        is False
+    )
+
+    # sync_allowed_emails_file with empty path and non-email admin entry does not write file
+    settings.allowed_emails_path = ""
+    settings.admin_emails = ["sheepdestroyer@gmail.com", "invalid-no-at"]
+    emails_list = database.sync_allowed_emails_file()
+    assert "pg.touja@gmail.com" in emails_list
+    assert "invalid-no-at" not in emails_list

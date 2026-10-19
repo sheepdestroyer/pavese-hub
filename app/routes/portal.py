@@ -1,7 +1,7 @@
 from collections import defaultdict
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -40,3 +40,20 @@ def get_portal(request: Request, user: UserInfo = Depends(get_current_user)) -> 
 def get_user_tiles(user: UserInfo = Depends(get_current_user)) -> list[Tile]:
     all_tiles = database.get_tiles(include_disabled=False)
     return [tile for tile in all_tiles if is_tile_permitted(tile, user)]
+
+
+@router.api_route("/api/authz", methods=["GET", "HEAD"])
+def check_host_authorization(request: Request, user: UserInfo = Depends(get_current_user)) -> Response:
+    target_host = (
+        request.query_params.get("host")
+        or request.headers.get("X-Original-Host")
+        or request.headers.get("X-Forwarded-Host")
+        or request.headers.get("Host")
+        or ""
+    )
+    if not database.authorize_host_access(target_host, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"User {user.email} is not authorized to access {target_host}",
+        )
+    return Response(status_code=status.HTTP_200_OK, headers={"X-Authz-User": user.email})

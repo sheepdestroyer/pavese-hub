@@ -28,6 +28,7 @@ pythonpath = ["."]
 [tool.ruff]
 target-version = "py311"
 line-length = 120
+exclude = ["AGENTS.md"]
 
 
 [tool.ruff.lint]
