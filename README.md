@@ -39,3 +39,16 @@ ruff check .
 # Check formatting
 ruff format --check .
 ```
+
+## Production Deployment (Quadlet)
+
+The production Quadlet is tracked in [`deploy/pavese-hub.container`](deploy/pavese-hub.container) (unit `pavese-hub.service`, container `production-pavese-hub`, loopback `127.0.0.1:5003`). It sets `Sysctl="net.ipv4.ip_local_port_range=62000 65000"` so pasta's host-side UDP flow sockets stay off the host's ephemeral range (see the x570 wiki concept `pasta-ephemeral-port-range`).
+
+After a release is merged (E10), install it on the host:
+
+```bash
+deploy/install.sh --dry-run          # show what would change
+deploy/install.sh --restart          # back up the old unit, install, daemon-reload, restart pavese-hub.service
+```
+
+`install.sh` is idempotent, backs up a differing unit as `<unit>.bak-<timestamp>`, and wraps `systemctl --user` in `timeout`. Use `--no-reload` to skip `daemon-reload`, `--dest DIR` for another Quadlet directory. `tests/test_deploy.py` pins the invariants and exercises the script.
