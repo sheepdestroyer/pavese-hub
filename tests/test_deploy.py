@@ -51,7 +51,24 @@ def test_quadlet_contains_no_secret_values():
         assert word not in text
 
 
-@pytest.mark.skipif(not QUADLET_GENERATOR.exists(), reason="podman quadlet generator not installed")
+def _generator_is_recent() -> bool:
+    """The unit uses keys (Entrypoint=, Sysctl=) that older Quadlet generators (podman < 5) reject."""
+    if not QUADLET_GENERATOR.exists():
+        return False
+    try:
+        out = subprocess.run(
+            [str(QUADLET_GENERATOR), "-version"], capture_output=True, text=True, timeout=30, check=False
+        )
+    except OSError:
+        return False
+    return (
+        out.returncode == 0
+        and out.stdout.strip().split(".")[0].isdigit()
+        and int(out.stdout.strip().split(".")[0]) >= 5
+    )
+
+
+@pytest.mark.skipif(not _generator_is_recent(), reason="podman >= 5 quadlet generator not installed")
 def test_quadlet_generator_accepts_unit_and_emits_one_sysctl():
     env = {**os.environ, "QUADLET_UNIT_DIRS": str(DEPLOY)}
     proc = subprocess.run(
