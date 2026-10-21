@@ -18,6 +18,9 @@ dependencies = [
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include = ["app*"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-v --tb=short --cov=app --cov-report=term-missing --cov-fail-under=100"

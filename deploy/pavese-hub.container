@@ -1,0 +1,38 @@
+[Unit]
+Description=Pavese Cloud Hub Container
+After=network-online.target
+
+[Container]
+ContainerName=production-pavese-hub
+Image=localhost/pavese-hub:latest
+Network=pasta:-a,10.0.2.1/24
+# pasta binds each outbound UDP flow on the host with the container source port: keep the container
+# ephemeral range off the host range (32768-60999). Quote the value (space-separated list).
+Sysctl="net.ipv4.ip_local_port_range=62000 65000"
+PublishPort=127.0.0.1:5003:5003
+User=0
+Volume=/mnt/DATA/boy/prod/pavese-hub/data:/app/data:Z
+Volume=/mnt/DATA/boy/prod/auth:/app/auth:z
+
+Volume=/mnt/DATA/boy/prod/haproxy/certs/ca-bundle.crt:/etc/ssl/certs/ca-bundle.crt:ro,z
+Volume=/mnt/DATA/boy/prod/infra/bin/log-priority-splitter.sh:/usr/local/bin/log-priority-splitter.sh:ro,z
+Entrypoint=/usr/local/bin/log-priority-splitter.sh
+Exec=python3 -m app.main
+
+Environment=PORT=5003
+Environment=HOST=0.0.0.0
+Environment=DATABASE_PATH=/app/data/hub.db
+Environment=ALLOWED_EMAILS_PATH=/app/auth/allowed_emails.txt
+Environment=ADMIN_EMAILS=sheepdestroyer@gmail.com,sheepyboy.x570@gmail.com
+Environment=ALLOW_LAN_ADMIN=true
+HealthCmd=curl -f http://127.0.0.1:5003/health || exit 1
+HealthInterval=30s
+HealthTimeout=5s
+HealthRetries=3
+
+[Service]
+Restart=on-failure
+TimeoutStartSec=60
+
+[Install]
+WantedBy=default.target
