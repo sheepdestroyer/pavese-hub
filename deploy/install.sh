@@ -64,10 +64,10 @@ for unit in "${UNITS[@]}"; do
     fi
     echo "install: installing ${unit} -> ${dest}"
     run install -m 0644 -- "$src" "$dest"
-    changed=1
+    changed=$((changed + 1))
 done
 
-if [ "$reload" -eq 1 ] && [ "$changed" -eq 1 ]; then
+if [ "$reload" -eq 1 ] && [ "$changed" -gt 0 ]; then
     run timeout "$SYSTEMCTL_TIMEOUT" systemctl --user daemon-reload
 fi
 if [ "$restart" -eq 1 ]; then
