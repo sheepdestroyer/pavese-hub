@@ -8,7 +8,7 @@ Image=localhost/pavese-hub:latest
 Network=pasta:-a,10.0.2.1/24
 # pasta binds each outbound UDP flow on the host with the container source port: keep the container
 # ephemeral range off the host range (32768-60999). Quote the value (space-separated list).
-Sysctl="net.ipv4.ip_local_port_range=62000 65000"
+Sysctl="net.ipv4.ip_local_port_range=62000 65001"
 PublishPort=127.0.0.1:5003:5003
 User=0
 Volume=/mnt/DATA/boy/prod/pavese-hub/data:/app/data:Z

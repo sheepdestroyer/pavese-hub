@@ -16,7 +16,7 @@ DEPLOY = Path(__file__).resolve().parents[1] / "deploy"
 QUADLET = DEPLOY / "pavese-hub.container"
 INSTALL = DEPLOY / "install.sh"
 QUADLET_GENERATOR = Path("/usr/libexec/podman/quadlet")
-SYSCTL_LINE = 'Sysctl="net.ipv4.ip_local_port_range=62000 65000"'
+SYSCTL_LINE = 'Sysctl="net.ipv4.ip_local_port_range=62000 65001"'
 
 
 def _lines() -> list[str]:
@@ -76,7 +76,7 @@ def test_quadlet_generator_accepts_unit_and_emits_one_sysctl():
     )
     assert proc.returncode == 0, proc.stderr
     assert "warning" not in proc.stderr.lower()
-    assert '--sysctl "net.ipv4.ip_local_port_range=62000\\x2065000"' in proc.stdout
+    assert '--sysctl "net.ipv4.ip_local_port_range=62000\\x2065001"' in proc.stdout
 
 
 @pytest.fixture

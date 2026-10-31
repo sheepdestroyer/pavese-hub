@@ -42,7 +42,7 @@ ruff format --check .
 
 ## Production Deployment (Quadlet)
 
-The production Quadlet is tracked in [`deploy/pavese-hub.container`](deploy/pavese-hub.container) (unit `pavese-hub.service`, container `production-pavese-hub`, loopback `127.0.0.1:5003`). It sets `Sysctl="net.ipv4.ip_local_port_range=62000 65000"` so pasta's host-side UDP flow sockets stay off the host's ephemeral range (see the x570 wiki concept `pasta-ephemeral-port-range`).
+The production Quadlet is tracked in [`deploy/pavese-hub.container`](deploy/pavese-hub.container) (unit `pavese-hub.service`, container `production-pavese-hub`, loopback `127.0.0.1:5003`). It sets `Sysctl="net.ipv4.ip_local_port_range=62000 65001"` so pasta's host-side UDP flow sockets stay off the host's ephemeral range (see the x570 wiki concept `pasta-ephemeral-port-range`).
 
 After a release is merged (E10), install it on the host:
 
